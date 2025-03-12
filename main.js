@@ -115,6 +115,9 @@ const isValidColor = (color) => {
 };
 
 document.addEventListener("DOMContentLoaded", (event) => {
+  // Global video grid item size variable
+  let videoItemSize = 150;
+
   //store DOM elements
   // General
   // const loadingPage = document.getElementById("loading-page");
@@ -136,6 +139,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const playSeriesButton = document.getElementById("play-series");
   const playAllButton = document.getElementById("play-all");
   const stopAllButton = document.getElementById("stop-all");
+  // New controls for video size
+  const increaseSizeButton = document.getElementById("increase-size");
+  const decreaseSizeButton = document.getElementById("decrease-size");
 
   // DOM Manipulation
   (function () {
@@ -200,6 +206,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   const videoGrid = document.getElementsByClassName("video-grid")[0];
 
+  // Create video grid items using videoItemSize
   for (let i = config.initialVideoIndex; i <= config.finalVideoIndex; i++) {
     const video = document.createElement("video");
     video.src = `videos/video${i}.mp4`;
@@ -207,17 +214,15 @@ document.addEventListener("DOMContentLoaded", (event) => {
     video.loop = true;
     video.preload = "auto";
     video.volume = config.videoVolume;
-
     video.classList.add("video-grid-item");
-
+    video.style.width = videoItemSize + "px";
+    video.style.height = (videoItemSize * 2) + "px";
     videoGrid.appendChild(video);
   }
 
-  videoGrid.style.gridTemplateColumns = `repeat(${Math.min(
-    config.finalVideoIndex,
-    config.gridColumnCount
-  )}, 1fr)`;
-
+  // Set grid to flow horizontally with two rows
+  videoGrid.style.gridAutoFlow = "column";
+  videoGrid.style.gridTemplateRows = "repeat(2, auto)";
   videoGrid.style.columnGap = `${config.gridGapScale * 1}vw`;
   videoGrid.style.rowGap = `${config.gridGapScale * 0.5}vh`;
 
@@ -341,6 +346,26 @@ document.addEventListener("DOMContentLoaded", (event) => {
     resetPlaySeries();
     playAllButton.classList.remove("disabled");
     stopAllVideos(videos);
+  });
+
+  // New: Increase size control
+  increaseSizeButton.addEventListener("click", () => {
+    videoItemSize += 10;
+    videos.forEach((video) => {
+      video.style.width = videoItemSize + "px";
+      video.style.height = (videoItemSize * 2) + "px";
+    });
+  });
+
+  // New: Decrease size control (with a minimum size check)
+  decreaseSizeButton.addEventListener("click", () => {
+    if (videoItemSize > 50) {
+      videoItemSize -= 10;
+      videos.forEach((video) => {
+        video.style.width = videoItemSize + "px";
+        video.style.height = (videoItemSize * 2) + "px";
+      });
+    }
   });
 
   // Video Event Listeners

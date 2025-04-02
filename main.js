@@ -1,5 +1,61 @@
 // version: 1.0.0
 // author: quanzhang.xyz
+const config = {
+  // =====================
+  // | Global Variables |
+  // =====================
+  finalVideoIndex: 22, // the index of the last video in your folder, enter 15 if video15.mp4 is the last video in your folder
+
+  // =================
+  // | Page Settings |
+  // =================
+  pageTitle: "", // for the browser tabs and search results
+  pageDescription: "",
+
+  // ======================
+  // | Project Information|
+  // ======================
+  projectTitle: "",
+  projectSubtitle: "",
+  projectInfo: "",
+
+  // ==================
+  // |Custom Variables|
+  // ==================
+  fullVideoExists: false, // enter true if you've included a fullvideo.mp4 in the videos folder
+  initialVideoIndex: 1, // enter 4 will start the project at video4.mp4
+  gridColumnCount: 4, // number of columns
+  gridGapScale: 1, // grid gap size (1 is default)
+  videoVolume: 1, // 1 is full volume, and 0 is completely mute
+
+  // ==============
+  // |Color Theme|
+  // ==============
+
+  /* 
+    You can use any color you want, but you need to use hex color codes.
+    Here are some guidelines:
+    - Hex color codes start with a '#' 
+    - They are followed by 6 alphanumeric characters.
+    - You can use this color picker to get the hex color code of a color:
+      https://g.co/kgs/sDiHLk
+  */
+  hoverVideoBorder: "#e32d45",
+  clickVideoBorder: "#0c8a3a",
+  playSeriesVideoBorder: "#88609c",
+  startButton: "#e32d45",
+
+  // ===========================================
+  // |Automated Permission Granting for Display|
+  // ===========================================
+  /* 
+    If it's set to true, the system will automatically grant permission 
+    for including your project for display on the project page and its Github page.
+  */
+  autoGrantPermission: false,
+  authorNameforDisplay: "",
+  authorContact: "",
+};
 
 // Config
 const appState = {
@@ -8,6 +64,9 @@ const appState = {
   videoSeriesIndex: 0,
   intervalId: null,
 };
+
+// Add base URL for videos from GitHub
+const videoBaseURL = "https://github.com/fddvisuals/video-grid-temp/raw/refs/heads/main/videos/";
 
 // Utility Functions
 
@@ -22,7 +81,8 @@ const updateTextByClassName = (className, newText) => {
 
 const appendVideo = (videoName, parentElement, autoplayStatus) => {
   let video = document.createElement("video");
-  video.src = "./videos/" + videoName + ".mp4";
+  // Changed to load video from GitHub instead of locally
+  video.src = videoBaseURL + videoName + ".mp4";
   video.controls = false;
   video.loop = true;
   video.autoplay = autoplayStatus;
@@ -115,9 +175,6 @@ const isValidColor = (color) => {
 };
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  // Global video grid item size variable
-  let videoItemSize = 150;
-
   //store DOM elements
   // General
   // const loadingPage = document.getElementById("loading-page");
@@ -125,23 +182,20 @@ document.addEventListener("DOMContentLoaded", (event) => {
   // const startButton = document.getElementById("start-button");
 
   // Footer-Right
-  const tactileToggle = document.getElementById("tactile-toggle");
-  const infoHover = document.getElementById("info-hover");
-  const infoPopup = document.getElementsByClassName("info-popup")[0];
-  const fullVideoToggle = document.getElementById("full-video-toggle");
-  const fullVideoPopup = document.getElementsByClassName("full-video-popup")[0];
-  const closeFullVideo = document.getElementById("close-full-video");
+  // Remove variables for controls no longer needed
+  // const tactileToggle = document.getElementById("tactile-toggle");
+  // const infoHover = document.getElementById("info-hover");
+  // const fullVideoToggle = document.getElementById("full-video-toggle");
+  // const fullVideoPopup = document.getElementsByClassName("full-video-popup")[0];
+  // const closeFullVideo = document.getElementById("close-full-video");
 
   // More Controls
-  const moreControls = document.getElementById("more-controls");
-  const hiddenControls = document.getElementsByClassName("hidden-controls");
-  const closeControls = document.getElementById("close-controls");
-  const playSeriesButton = document.getElementById("play-series");
-  const playAllButton = document.getElementById("play-all");
-  const stopAllButton = document.getElementById("stop-all");
-  // New controls for video size
-  const increaseSizeButton = document.getElementById("increase-size");
-  const decreaseSizeButton = document.getElementById("decrease-size");
+  // const moreControls = document.getElementById("more-controls");
+  // const hiddenControls = document.getElementsByClassName("hidden-controls");
+  // const closeControls = document.getElementById("close-controls");
+  // const playSeriesButton = document.getElementById("play-series");
+  // const playAllButton = document.getElementById("play-all");
+  // const stopAllButton = document.getElementById("stop-all");
 
   // DOM Manipulation
   (function () {
@@ -206,27 +260,23 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   const videoGrid = document.getElementsByClassName("video-grid")[0];
 
-  // Create video grid items using videoItemSize
+  // Create video grid items using GitHub video source
   for (let i = config.initialVideoIndex; i <= config.finalVideoIndex; i++) {
     const video = document.createElement("video");
-    video.src = `videos/video${i}.mp4`;
+    video.src = `${videoBaseURL}video${i}.mp4`; // using GitHub video URL
     video.controls = false;
     video.loop = true;
     video.preload = "auto";
     video.volume = config.videoVolume;
     video.classList.add("video-grid-item");
-    video.style.width = videoItemSize + "px";
-    video.style.height = (videoItemSize * 2) + "px";
     videoGrid.appendChild(video);
   }
 
-  // Set grid to flow horizontally with two rows
+  // Remove grid style adjustments for controls if any, retain basic styling
   videoGrid.style.gridAutoFlow = "column";
-  videoGrid.style.gridTemplateRows = "repeat(2, auto)";
+  videoGrid.style.gridTemplateRows = "1fr 1fr";
   videoGrid.style.columnGap = `${config.gridGapScale * 1}vw`;
   videoGrid.style.rowGap = `${config.gridGapScale * 0.5}vh`;
-
-  // Videos
 
   const videos = Array.from(document.querySelectorAll(".video-grid video"));
 
@@ -236,164 +286,30 @@ document.addEventListener("DOMContentLoaded", (event) => {
     });
   });
 
-  // Event Listeners
-
-  // Tactile Toggle
-  tactileToggle.addEventListener("click", () => {
-    appState.isTactile = !appState.isTactile;
-    playAllButton.classList.remove("disabled");
-    resetPlaySeries();
-    stopAllVideos(videos);
-    if (appState.isTactile) {
-      tactileToggle.classList.add("light-background");
-      tactileToggle.innerHTML = "click mode";
-    } else {
-      tactileToggle.classList.remove("light-background");
-      tactileToggle.innerHTML = "tactile mode";
-    }
-  });
-  // Info Hover Display
-  if (config.projectInfo !== "") {
-    hoverToPopup(infoHover, infoPopup);
-  }
-
-  const fullVideo = appendVideo("fullvideo", fullVideoPopup, false);
-  fullVideo.classList.add("full-size");
-
-  // Full Video Toggle
-  if (config.fullVideoExists) {
-    fullVideoToggle.style.display = "block";
-    fullVideoToggle.addEventListener("click", () => {
-      resetPlaySeries();
-      stopAllVideos(videos);
-      playAllButton.classList.remove("disabled");
-      fullVideo.play();
-      popup(fullVideoPopup);
-    });
-    closeFullVideo.addEventListener("click", () => {
-      fullVideo.pause();
-      popup(fullVideoPopup);
-    });
-  }
-
-  // More Controls
-  moreControls.addEventListener("click", () => {
-    moreControls.style.display = "none";
-    for (let hiddenControl of hiddenControls) {
-      hiddenControl.style.display = "block";
-    }
-  });
-  closeControls.addEventListener("click", () => {
-    moreControls.style.display = "block";
-    for (let hiddenControl of hiddenControls) {
-      hiddenControl.style.display = "none";
-    }
-  });
-
-  // Play Series Functionality (play all videos in order)
-
-  playSeriesButton.addEventListener("click", () => {
-    playAllButton.classList.add("disabled");
-    //1. Stop All Videos
-    videos.forEach((video) => {
-      video.pause();
-      video.currentTime = 0;
-      resetVideoClasses(video);
-    });
-    //2. Play Videos in Order
-    const playNextVideo = () => {
-      if (appState.videoSeriesIndex < videos.length) {
-        videos[appState.videoSeriesIndex].currentTime = 0;
-        videos[appState.videoSeriesIndex].play();
-        videos[appState.videoSeriesIndex].classList.add("auto-playing");
-
-        appState.intervalId = setInterval(() => {
-          if (
-            videos[appState.videoSeriesIndex].currentTime >=
-            videos[appState.videoSeriesIndex].duration - 0.1
-          ) {
-            videos[appState.videoSeriesIndex].pause();
-            clearInterval(appState.intervalId);
-            resetVideoClasses(videos[appState.videoSeriesIndex]);
-            appState.videoSeriesIndex++;
-            playNextVideo();
-          }
-        }, 1);
-      } else {
-        playAllButton.classList.remove("disabled");
-      }
-    };
-    playNextVideo();
-  });
-
-  // Play All Functionality (play all videos at the same time)
-  playAllButton.addEventListener("click", () => {
-    if (!playAllButton.classList.contains("disabled")) {
-      videos.forEach((video) => {
-        video.play();
-        if (!appState.isTactile) {
-          video.classList.add("click-playing");
-        } else {
-          video.classList.add("hover-playing");
-        }
-      });
-    }
-  });
-
-  // Stop All Functionality (stop all videos)
-
-  stopAllButton.addEventListener("click", () => {
-    resetPlaySeries();
-    playAllButton.classList.remove("disabled");
-    stopAllVideos(videos);
-  });
-
-  // New: Increase size control
-  increaseSizeButton.addEventListener("click", () => {
-    videoItemSize += 10;
-    videos.forEach((video) => {
-      video.style.width = videoItemSize + "px";
-      video.style.height = (videoItemSize * 2) + "px";
-    });
-  });
-
-  // New: Decrease size control (with a minimum size check)
-  decreaseSizeButton.addEventListener("click", () => {
-    if (videoItemSize > 50) {
-      videoItemSize -= 10;
-      videos.forEach((video) => {
-        video.style.width = videoItemSize + "px";
-        video.style.height = (videoItemSize * 2) + "px";
-      });
-    }
-  });
-
-  // Video Event Listeners
+  // Remove control event listeners; keep video event listeners for playback on mouse events
   videos.forEach((video) => {
     video.addEventListener("mouseenter", () => {
+      // Play on hover
       if (!video.classList.contains("auto-playing")) {
-        if (appState.isTactile) {
-          toggleHoverPlay(video);
-        } else {
-          startHoverPlay(video);
-        }
+        video.play();
+        video.classList.add("hover-playing");
       }
     });
-
     video.addEventListener("mouseleave", () => {
-      if (
-        !appState.isTactile &&
-        !video.classList.contains("click-playing") &&
-        !video.classList.contains("auto-playing") &&
-        video.classList.contains("hover-playing")
-      ) {
-        pauseHoverPlay(video);
+      // Pause hover playback
+      if (video.classList.contains("hover-playing") && !video.classList.contains("auto-playing")) {
+        video.pause();
+        video.classList.remove("hover-playing");
       }
     });
-
     video.addEventListener("click", () => {
-      if (!appState.isTactile && !video.classList.contains("auto-playing")) {
-        toggleClickPlay(video);
+      // Toggle play/pause on click
+      if (video.paused) {
+        video.play();
+        video.classList.add("click-playing");
+      } else {
+        video.pause();
+        video.classList.remove("click-playing");
       }
     });
   });
